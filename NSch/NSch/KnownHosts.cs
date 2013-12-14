@@ -214,10 +214,17 @@ namespace NSch
 					}
 					//System.err.println(host);
 					//System.err.println("|"+key+"|");
-					HostKey hk = null;
-					hk = new KnownHosts.HashedHostKey(this, host, type, Util.FromBase64(Util.Str2byte
-						(key), 0, key.Length));
-					pool.Add(hk);
+					try
+					{
+						HostKey hk = null;
+						hk = new KnownHosts.HashedHostKey(this, host, type, Util.FromBase64(Util.Str2byte
+							(key), 0, key.Length));
+						pool.Add(hk);
+					}
+					catch ( IndexOutOfRangeException )
+					{
+						// ignore
+					}
 loop_continue: ;
 				}
 loop_break: ;
