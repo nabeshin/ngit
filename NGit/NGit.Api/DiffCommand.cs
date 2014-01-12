@@ -121,19 +121,22 @@ namespace NGit.Api
 						ObjectId head = repo.Resolve(Constants.HEAD + "^{tree}");
 						if (head == null)
 						{
-							throw new NoHeadException(JGitText.Get().cannotReadTree);
+							oldTree = new EmptyTreeIterator();
 						}
-						CanonicalTreeParser p = new CanonicalTreeParser();
-						ObjectReader reader = repo.NewObjectReader();
-						try
+						else
 						{
-							p.Reset(reader, head);
+							CanonicalTreeParser p = new CanonicalTreeParser();
+							ObjectReader reader = repo.NewObjectReader();
+							try
+							{
+								p.Reset(reader, head);
+							}
+							finally
+							{
+								reader.Release();
+							}
+							oldTree = p;
 						}
-						finally
-						{
-							reader.Release();
-						}
-						oldTree = p;
 					}
 					newTree = new DirCacheIterator(repo.ReadDirCache());
 				}
