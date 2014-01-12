@@ -72,6 +72,11 @@ namespace NGit.Api
 	{
 		private ICollection<string> filepatterns;
 
+		/// <summary>
+		/// Only remove files from index, not from working directory
+		/// </summary>
+		private bool cached = false;
+
 		/// <param name="repo"></param>
 		protected internal RmCommand(Repository repo) : base(repo)
 		{
@@ -87,6 +92,18 @@ namespace NGit.Api
 		{
 			CheckCallable();
 			filepatterns.AddItem(filepattern);
+			return this;
+		}
+
+		/// <summary>
+		/// Only remove the specified files from the index.
+		/// </summary>
+		/// <param name="cached">true if files should only be removed from index, false if files should also be deleted from the working directory</param>
+		/// <returns>this</returns>
+		public RmCommand SetCached(bool cached)
+		{
+			CheckCallable();
+			this.cached = cached;
 			return this;
 		}
 
@@ -120,13 +137,16 @@ namespace NGit.Api
 				tw.AddTree(new DirCacheBuildIterator(builder));
 				while (tw.Next())
 				{
-					FilePath path = new FilePath(repo.WorkTree, tw.PathString);
-					FileMode mode = tw.GetFileMode(0);
-					if (mode.GetObjectType() == Constants.OBJ_BLOB)
+					if (!cached)
 					{
-						// Deleting a blob is simply a matter of removing
-						// the file or symlink named by the tree entry.
-						Delete(path);
+						FilePath path = new FilePath(repo.WorkTree, tw.PathString);
+						FileMode mode = tw.GetFileMode(0);
+						if (mode.GetObjectType() == Constants.OBJ_BLOB)
+						{
+							// Deleting a blob is simply a matter of removing
+							// the file or symlink named by the tree entry.
+							Delete(path);
+						}
 					}
 				}
 				builder.Commit();
